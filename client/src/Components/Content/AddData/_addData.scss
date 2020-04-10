@@ -1,0 +1,7 @@
+@import './mixins';
+
+.addPage__content {
+    padding-top: $spacing-10;
+    padding-bottom: $spacing-06;
+    @include landing-page-background;
+}

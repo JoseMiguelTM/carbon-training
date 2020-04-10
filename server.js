@@ -3,6 +3,7 @@ var http = require('http');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
+var md5 = require('md5');
 
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json());
@@ -56,28 +57,50 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.post('/checkUser', function(req, res, next) {
-  console.log('okay!');
-  let email = req.body.email;
-  let pass = req.body.password;
+app.post('/addUser', function(req, res, next) {
+  console.log('add user api begins here!')
+  let newUser = req.body;
+  let db2Query = "INSERT INTO LGX65344.USERS(FIRSTNAME, LASTNAME, W3ID, PASSWORD, BUSINESSUNIT, TECHNOLOGIES) VALUES ('"+newUser.firstName+"', '"+newUser.lastName+"', '"+newUser.w3id+"', '"+md5(newUser.password)+"', '"+newUser.businessUnit+"', '"+newUser.technologies+"');";
+  console.log(db2Query);
   ibmdb.open(connect, function(err, conn) {
-    let db2Query = "SELECT * FROM users WHERE USEREMAIL = '"+ email +"'";
     if(err) {
       return res.json({success: -1, message: err});
     }
     conn.query(db2Query, function(err, data) {
       if(err) {
-        return res.json({success: -1, message: err})
+        return res.json({success: -1, message: err});
       }
-      conn.close(function() {
+      conn.close();
+      return res.json({data: data});
+    })
+  })
+});
+
+app.post('/viewUsers', function(req, res, next) {
+  console.log('view users api begins here!')
+  let db2Query = "SELECT * FROM LGX65344.USERS;";
+  ibmdb.open(connect, function(err, conn) {
+    if(err) {
+      return res.json({success: -1, message: err});
+    }
+    conn.query(db2Query, function(err, data) {
+      if(err) {
+        return res.json({success: -1, message: err});
+      }
+      conn.close();
+      return res.json({data: data});
+    })
+  })
+});
+
+/*conn.close(function() {
         Object.keys(data).map(function(key, index) {
           console.log("MAIL:", data[key].USEREMAIL, "TYPE: ", data[key].USERTYPE);
           console.log("Found!");
         })
-      })
-    })
-  });
-})
+      })*/
+
+
 
 const port = process.env.PORT || 3001;
 
