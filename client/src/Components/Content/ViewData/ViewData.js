@@ -1,33 +1,34 @@
 import React, {useEffect} from 'react';
 import axios from 'axios';
 import {DataTableSkeleton, Pagination} from 'carbon-components-react';
+import TableData from './TableData';
 
 
 const headers = [
     {
-        key: 'firstName',
+        key: 'FIRSTNAME',
         header: 'First Name'
     },
     {
-        key: "lastName",
+        key: "LASTNAME",
         header: "Last Name"
     },
     {
-        key: "w3id",
+        key: "W3ID",
         header: "w3id"
     },
     {
-        key: "businessUnit",
+        key: "BUSINESSUNIT",
         header: "Business Unit"
     },
     {
-        key: "technologies",
+        key: "TECHNOLOGIES",
         header: "Known Technologies"
     },
-]
+];
 
 const ViewData = () => {
-    const [loading, setLoading] = React.useState(true);
+    const [loading, setLoading] = React.useState(false);
     const [rows, setRows] = React.useState([]);
     const [currentPageSize, setCurrentPageSize] = React.useState(10);
     const [firstRowIndex, setFirstRowIndex] = React.useState(0);
@@ -35,7 +36,13 @@ const ViewData = () => {
     useEffect(() => {
         axios.post('http://localhost:3001/viewUsers')
         .then(res => {
-            setRows(res.data.data);
+            //setRows(res.data.data);
+            let dataChanged = res.data.data;
+            dataChanged.forEach(user => {
+                user.id = user.ID.toString();
+                delete user.ID;
+            });
+            setRows(dataChanged);
             setLoading(false);
         })
         .catch(
@@ -46,46 +53,45 @@ const ViewData = () => {
     }, []);
 
     if(loading) {
-        return <div>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <DataTableSkeleton
-                columnCount = {4}
-                rowCount = {10}
-                headers = {headers}
-            />
-            {console.log(rows)}
+        return <div className = "bx--grid bx--grid--full-width bx--grid--no-gutter">
+            <div className = "bx--row dataTable">
+                <div className = "bx--col-lg-16">
+                    <DataTableSkeleton
+                        columnCount = {6}
+                        rowCount = {10}
+                        headers = {headers}
+                    />
+                </div>
+            </div>
         </div>
     }
     else {
-        return <div>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            Loaded!
-            <Pagination
-                totalItems = {rows.length}
-                backwardText = "Previous Page"
-                forwardText = "Next Page"
-                pageSize = {10}
-                pageSizes = {[5, 10]}
-                itemsPerPageText = "Items per page"
-                onChange = {({page, pageSize}) => {
-                    if(pageSize !== currentPageSize) {
-                        setCurrentPageSize(pageSize);
-                    }
-                    setFirstRowIndex(pageSize * (page - 1));
-                }}
-            />
+        return <div className = "bx--grid bx--grid--full-width bx--grid--no-gutter">
+            <div className = "bx--row dataTable">
+                <div className = "bx--col-lg-16">
+                    <TableData
+                        headers = {headers}
+                        rowData = {rows.slice(
+                            firstRowIndex,
+                            firstRowIndex + currentPageSize
+                        )}
+                    />
+                    <Pagination
+                        totalItems = {rows.length}
+                        backwardText = "Previous Page"
+                        forwardText = "Next Page"
+                        pageSize = {10}
+                        pageSizes = {[5, 10]}
+                        itemsPerPageText = "Items per page"
+                        onChange = {({page, pageSize}) => {
+                            if(pageSize !== currentPageSize) {
+                                setCurrentPageSize(pageSize);
+                            }
+                            setFirstRowIndex(pageSize * (page - 1));
+                        }}
+                    />
+                </div>
+            </div>
         </div>
     }
 }

@@ -5,7 +5,9 @@ import {
     FormGroup,
     TextInput,
     Dropdown,
-    Checkbox
+    Checkbox,
+    ToastNotification,
+    InlineLoading
 } from 'carbon-components-react';
 import axios from 'axios';
 
@@ -16,28 +18,50 @@ const inputs = {
     userPassword: {value: '', error: false, rule: new RegExp(/^.{6,}$/)},
 }
 
+const technologiesList = {
+    React: false, 
+    Angular: false,
+    VueJS: false,
+    CouchDB: false,
+    DB2: false
+}
+
+const statuses = {
+    showToastSuccess: false, 
+    showToastError: false,
+    showLoading: false, 
+    submitStatus: 'active',
+    submitDescription: "Creating user...",
+    captionToast: "If you can see a code here please contact System Administrator",
+    timeElapsed: 0
+}
+
+const businessUnits = [
+    {
+        id: 'gts',
+        text: 'GTS'
+    },
+    {
+        id: 'gbs',
+        text: 'GBS'
+    },
+    {
+        id: 'cio',
+        text: 'BT-CIO'
+    },
+    {
+        id: 'pwr',
+        text: 'Power Systems'
+    }
+];
+
 const AddData = () => {
     const [input, setInput] = useState(inputs);
     const [businessUnit, setBusinessUnit] = useState('');
+    const [technologiesState, setTechnologiesState] = useState(technologiesList);
+    const [done, setDone] = useState(statuses);
     let technologies = [];
-    const businessUnits = [
-        {
-            id: 'gts',
-            text: 'GTS'
-        },
-        {
-            id: 'gbs',
-            text: 'GBS'
-        },
-        {
-            id: 'cio',
-            text: 'BT-CIO'
-        },
-        {
-            id: 'pwr',
-            text: 'Power Systems'
-        }
-    ];
+    let initTime, finalTime;
 
     const onChangeInput = e => {
         const {name, value} = e.target;
@@ -49,39 +73,110 @@ const AddData = () => {
     }
 
     const handleSubmit = (e) => {
-        let newUser = {
-            firstName: input.userFirstName.value,
-            lastName: input.userLastName.value,
-            w3id: input.userW3id.value,
-            password: input.userPassword.value,
-            businessUnit: businessUnit,
-            technologies: technologies.toString()
+        if(input.userFirstName.value === '' || input.userLastName.value === '' || input.userW3id.value === '' || input.userPassword.value === '' || businessUnit === '') {
+            setInput(inputs);
+            setDone({showToastSuccess: false, showToastError: true, showLoading: true, submitStatus: "error", submitDescription: "Failed, try again", captionToast: "If you can see a code here please contact System Administrator", timeElapsed: 0});
         }
-
-        axios.post('http://localhost:3001/addUser', newUser)
-        .then((res) => {
-            console.log(res);
-            alert('Done!');
-        })
-        .catch(
-            function(error) {
-                console.log(error)
+        else {
+            Object.keys(technologiesState).map(technology => {
+                if(technologiesState[technology]) {
+                    technologies.push(technology);
+                }
+            })
+            let newUser = {
+                firstName: input.userFirstName.value,
+                lastName: input.userLastName.value,
+                w3id: input.userW3id.value,
+                password: input.userPassword.value,
+                businessUnit: businessUnit,
+                technologies: technologies.toString()
             }
-        );
+            setDone({showToastSuccess: false, showToastError: false, showLoading: true, submitStatus: "active", submitDescription: "Wait a moment...", captionToast: "Nothing", timeElapsed: 0});
+            initTime = new Date().getTime();
+
+            axios.post('http://localhost:3001/addUser', newUser)
+            .then((res) => {
+                if(res.data.code !== 200) {
+                    //Server status failed
+                    finalTime = new Date().getTime() - initTime;
+                    setDone({showToastSuccess: false, showToastError: true, showLoading: true, submitStatus: 'error', submitDescription: "Failed, try again", captionToast: "Server Response Code: " + res.data.code + ", " + finalTime + " ms.", timeElapsed: finalTime});
+
+                }
+                else {
+                    //Server status OK
+                    finalTime = new Date().getTime() - initTime;
+                    setDone({showToastSuccess: true, showToastError: false, showLoading: true, submitStatus: 'finished', submitDescription: "Done!", captionToast: "Nothing", timeElapsed: finalTime});
+                    setInput(inputs);
+                    setBusinessUnit('');
+                    setTechnologiesState(technologiesList);
+                }
+            })
+            .catch(
+                function(error) {
+                    setDone({showToastSuccess: false, showToastError: true, showLoading: true, submitStatus: "error", submitDescription: "Failed, try again", captionToast: error.message + ": Check your connection status and try again", timeElapsed: 0});
+                }
+            );
+        }
     }
 
     const handleCheck = (checked, value) => {
-        if(checked) {
-            technologies.push(value);
-        }
-        else {
-            const index = technologies.indexOf(value);
-            technologies.splice(index, 1); 
+        switch(value) {
+            case 'React': {
+                setTechnologiesState({
+                    React: checked, 
+                    Angular: technologiesState.Angular,
+                    VueJS: technologiesState.VueJS,
+                    CouchDB: technologiesState.CouchDB,
+                    DB2: technologiesState.DB2
+                });
+                break;
+            }
+            case 'Angular': {
+                setTechnologiesState({
+                    React: technologiesState.React, 
+                    Angular: checked,
+                    VueJS: technologiesState.VueJS,
+                    CouchDB: technologiesState.CouchDB,
+                    DB2: technologiesState.DB2
+                });
+                break;
+            }
+            case 'Vue.JS': {
+                setTechnologiesState({
+                    React: technologiesState.React, 
+                    Angular: technologiesState.Angular,
+                    VueJS: checked,
+                    CouchDB: technologiesState.CouchDB,
+                    DB2: technologiesState.DB2
+                });
+                break;
+            }
+            case 'CouchDB': {
+                setTechnologiesState({
+                    React: technologiesState.React, 
+                    Angular: technologiesState.Angular,
+                    VueJS: technologiesState.VueJS,
+                    CouchDB: checked,
+                    DB2: technologiesState.DB2
+                });
+                break;
+            }
+            case 'IBM DB2': {
+                setTechnologiesState({
+                    React: technologiesState.React, 
+                    Angular: technologiesState.Angular,
+                    VueJS: technologiesState.VueJS,
+                    CouchDB: technologiesState.CouchDB,
+                    DB2: checked
+                });
+                break;
+            }
         }
     }
 
-    console.log('render');
+    
     return <React.Fragment>
+        
         <div className = "bx--grid bx--grid--full-width">
             <div className = "bx--row addPage__content">
                 <div className = "bx--col-lg-16">
@@ -90,7 +185,7 @@ const AddData = () => {
                     </h1>
                 </div>
             </div>
-
+            
             <div className = "bx--row">
                 <div className = "bx--col-lg-4"></div>
                 <div className = "bx--col-lg-8">
@@ -102,7 +197,8 @@ const AddData = () => {
                                         onChange = {onChangeInput}
                                         id = "a"
                                         name = "userFirstName"
-                                        labelText = "First Name" 
+                                        labelText = "First Name"
+                                        value = {input.userFirstName.value}
                                     />
                                 </FormGroup>
                             </div>
@@ -112,7 +208,8 @@ const AddData = () => {
                                         onChange = {onChangeInput}
                                         id = "b"
                                         name = "userLastName"
-                                        labelText = "Last Name" 
+                                        labelText = "Last Name"
+                                        value = {input.userLastName.value}
                                     />
                                 </FormGroup>
                             </div>
@@ -126,6 +223,7 @@ const AddData = () => {
                                         id = "c"
                                         name = "userW3id"
                                         labelText = "w3id"
+                                        value = {input.userW3id.value}
                                         invalid = {input.userW3id.error}
                                         invalidText = "Invalid w3id"
                                     />
@@ -141,6 +239,7 @@ const AddData = () => {
                                         id = 'd'
                                         name = "userPassword"
                                         labelText = "Password"
+                                        value = {input.userPassword.value}
                                         invalid = {input.userPassword.error}
                                         invalidText = "Password must contain at least 6 characters"
                                         type = "password"
@@ -167,43 +266,69 @@ const AddData = () => {
                                     <legend className = "bx--label">Known Technologies</legend>
                                     <Checkbox
                                         labelText = "React"
-                                        id = "react"
+                                        id = "React"
+                                        checked = {technologiesState.React}
                                         onChange = {handleCheck}
                                     />
                                     <Checkbox
                                         labelText = "Angular"
-                                        id = "angular"
+                                        id = "Angular"
+                                        checked = {technologiesState.Angular}
                                         onChange = {handleCheck}
                                     />
                                     <Checkbox
                                         labelText = "Vue.JS"
-                                        id = "vue"
+                                        id = "Vue.JS"
+                                        checked = {technologiesState.VueJS}
                                         onChange = {handleCheck}
                                     />
                                     <Checkbox
                                         labelText = "CouchDB"
-                                        id = "couch"
+                                        id = "CouchDB"
+                                        checked = {technologiesState.CouchDB}
                                         onChange = {handleCheck}
                                     />
                                     <Checkbox
                                         labelText = "IBM DB2"
-                                        id = "db2"
+                                        id = "IBM DB2"
+                                        checked = {technologiesState.DB2}
                                         onChange = {handleCheck}
                                     />
                                 </fieldset>
                             </div>
                         </div>
 
-                        <Button
-                            kind = "primary"
-                            onClick = {handleSubmit}
-                        >
-                            Create user
-                        </Button>
+                        <div className = "bx--row">
+                            <div className = "bx--col-lg-8">
+                                <Button
+                                    kind = "primary"
+                                    onClick = {handleSubmit}
+                                >
+                                    Create user
+                                </Button>
+                            </div>
+                            <div className = "bx--col-lg-4 inlineText">
+                                {done.showLoading ? <InlineLoading status = {done.submitStatus} description = {done.submitDescription}/> : ''}
+                            </div> 
+                        </div>
                     </Form>
                 </div>
+                <div className = "bx--col-lg-4">
+                    {done.showToastSuccess ? <ToastNotification 
+                                title = "Success" 
+                                subtitle = "User has been added and you can view your users on View Data page" 
+                                kind = {"success"} 
+                                caption = {"Time elapsed: " + done.timeElapsed + " ms."}
+                            /> : ''}
+                    {done.showToastError ? <ToastNotification 
+                                title = "Oh no" 
+                                subtitle = "There was a problem creating your user, please try again"
+                                kind = {"error"} 
+                                caption = {done.captionToast} 
+                            /> : ''}
+                </div>
             </div>
-            </div>
+        </div>
     </React.Fragment>
 }
 
