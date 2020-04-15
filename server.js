@@ -1,5 +1,6 @@
 var ibmdb = require('ibm_db');
 var http = require('http');
+const path = require('path');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -100,7 +101,9 @@ app.post('/viewUsers', function(req, res, next) {
         })
       })*/
 
-
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 const port = process.env.PORT || 3001;
 
