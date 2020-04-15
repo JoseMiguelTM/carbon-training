@@ -38,20 +38,20 @@ const statuses = {
 
 const businessUnits = [
     {
-        id: 'gts',
-        text: 'GTS'
+        id: 'u1',
+        text: 'Unit 1'
     },
     {
-        id: 'gbs',
-        text: 'GBS'
+        id: 'u2',
+        text: 'Unit 2'
     },
     {
-        id: 'cio',
-        text: 'BT-CIO'
+        id: 'u3',
+        text: 'Unit 3'
     },
     {
-        id: 'pwr',
-        text: 'Power Systems'
+        id: 'u4',
+        text: 'Unit 4'
     }
 ];
 
