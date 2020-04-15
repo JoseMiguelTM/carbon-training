@@ -94,7 +94,7 @@ const AddData = () => {
             setDone({showToastSuccess: false, showToastError: false, showLoading: true, submitStatus: "active", submitDescription: "Wait a moment...", captionToast: "Nothing", timeElapsed: 0});
             initTime = new Date().getTime();
 
-            axios.post('http://localhost:3001/addUser', newUser)
+            axios.post('http://localhost:8080/addUser', newUser)
             .then((res) => {
                 if(res.data.code !== 200) {
                     //Server status failed
