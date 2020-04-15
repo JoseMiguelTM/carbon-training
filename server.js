@@ -109,7 +109,7 @@ if(process.env.NODE_ENV === 'production') {
   });
 }
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3001;
 
 http.createServer(app).listen(port, function() {
     console.log('Express server is up and listening on port ' + port);
