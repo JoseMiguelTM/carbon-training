@@ -100,10 +100,12 @@ app.post('/viewUsers', function(req, res, next) {
           console.log("Found!");
         })
       })*/
-
-app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+if(process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'client/build')));
+  app.get('*', function(req, res) {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  });
+}
 
 const port = process.env.PORT || 3001;
 
