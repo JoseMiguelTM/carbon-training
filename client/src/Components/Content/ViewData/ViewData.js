@@ -34,7 +34,7 @@ const ViewData = () => {
     const [firstRowIndex, setFirstRowIndex] = React.useState(0);
 
     useEffect(() => {
-        axios.post('http://localhost:3001/viewUsers')
+        axios.post('http://localhost:6081/viewUsers')
         .then(res => {
             //setRows(res.data.data);
             let dataChanged = res.data.data;

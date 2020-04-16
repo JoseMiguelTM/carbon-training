@@ -97,14 +97,14 @@ app.post('/viewUsers', function(req, res, next) {
           console.log("Found!");
         })
       })*/
-if(process.env.NODE_ENV === 'production') {
+if(process.env.NODE_ENV==='production') {
   app.use(express.static(path.join(__dirname, 'client/build')));
   app.get('*', function(req, res) {
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
   });
 }
 
-const port = 3001;
+const port = process.env.PORT || 6081;
 
 http.createServer(app).listen(port, function() {
     console.log('Express server is up and listening on port ' + port);
