@@ -104,8 +104,10 @@ if(process.env.NODE_ENV==='production') {
   });
 }
 
-const port = process.env.PORT || 6081;
+require('./routes/api/addUser')(app);
 
-http.createServer(app).listen(port, function() {
+const port = process.env.PORT || 3001;
+
+app.listen(port, function() {
     console.log('Express server is up and listening on port ' + port);
 })
